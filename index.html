@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Calculadora Nutricional - Vivafit</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0a1f33, #1f4e79);
+    color: white;
+    padding: 30px;
+}
+
+.container {
+    max-width: 750px;
+    margin: auto;
+    background: rgba(255,255,255,0.05);
+    padding: 30px;
+    border-radius: 12px;
+}
+
+h1 { text-align: center; }
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: #00cfff;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.result {
+    margin-top: 25px;
+    background: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+    color: #00ffcc;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Calculadora Nutricional</h1>
+
+<label>Peso (kg)</label>
+<input type="number" id="peso" oninput="calculoAuto()">
+
+<label>Altura (cm)</label>
+<input type="number" id="altura" oninput="calculoAuto()">
+
+<label>Biotipo</label>
+<select id="biotipo" onchange="calculoAuto()">
+    <option>Ectomorfo</option>
+    <option>Mesomorfo</option>
+    <option>Endomorfo</option>
+</select>
+
+<!-- PROTEÍNA -->
+<label>Estratégia Proteína</label>
+<select onchange="setProteina(this.value)">
+    <option value="">Selecione</option>
+    <option value="cut">Cutting</option>
+    <option value="bulk">Bulking</option>
+    <option value="manut">Manutenção</option>
+    <option value="custom">Personalizado</option>
+</select>
+<input type="number" id="proteinaKg" placeholder="g/kg">
+
+<!-- LIPÍDIO -->
+<label>Estratégia Lipídio</label>
+<select onchange="setLipidio(this.value)">
+    <option value="">Selecione</option>
+    <option value="cut">Cutting</option>
+    <option value="bulk">Bulking</option>
+    <option value="manut">Manutenção</option>
+    <option value="custom">Personalizado</option>
+</select>
+<input type="number" id="lipidioKg" placeholder="g/kg">
+
+<!-- CARBO -->
+<label>Estratégia Carboidrato</label>
+<select onchange="setCarbo(this.value)">
+    <option value="">Selecione</option>
+    <option value="cut">Cutting</option>
+    <option value="bulk">Bulking</option>
+    <option value="manut">Manutenção</option>
+    <option value="custom">Personalizado</option>
+</select>
+<input type="number" id="carboKg" placeholder="g/kg">
+
+<button onclick="calcular()">Calcular</button>
+
+<div class="result" id="resultado"></div>
+
+</div>
+
+<script>
+
+// ================= AUTO (IMC + TMB + ÁGUA) =================
+function calculoAuto() {
+
+let peso = parseFloat(document.getElementById('peso').value) || 0;
+let alturaCm = parseFloat(document.getElementById('altura').value) || 0;
+let biotipo = document.getElementById('biotipo').value;
+
+if(peso === 0 || alturaCm === 0) return;
+
+let alturaM = alturaCm / 100;
+
+// IMC
+let imc = peso / (alturaM * alturaM);
+
+// TMB simples por biotipo
+let tmb = 0;
+if(biotipo === "Ectomorfo") tmb = peso * 24;
+if(biotipo === "Mesomorfo") tmb = peso * 22;
+if(biotipo === "Endomorfo") tmb = peso * 20;
+
+// ÁGUA
+let aguaMl = peso * 50;
+let aguaL = aguaMl / 1000;
+
+document.getElementById('resultado').innerHTML = `
+<h3>Dados Corporais</h3>
+
+<p>⚖️ IMC: <strong>${imc.toFixed(2)}</strong></p>
+<p>🔥 TMB: <strong>${tmb.toFixed(0)} kcal</strong></p>
+<p>💧 Água recomendada: <strong>${aguaL.toFixed(2)} L</strong></p>
+
+<hr>
+`;
+}
+
+// ================= MACROS AUTOMÁTICOS =================
+function setProteina(tipo) {
+    let val = 0;
+    if(tipo === "cut") val = 2.2;
+    if(tipo === "bulk") val = 1.8;
+    if(tipo === "manut") val = 2.0;
+    if(tipo === "custom") return;
+    document.getElementById('proteinaKg').value = val;
+}
+
+function setLipidio(tipo) {
+    let val = 0;
+    if(tipo === "cut") val = 0.8;
+    if(tipo === "bulk") val = 1.0;
+    if(tipo === "manut") val = 0.9;
+    if(tipo === "custom") return;
+    document.getElementById('lipidioKg').value = val;
+}
+
+function setCarbo(tipo) {
+    let val = 0;
+    if(tipo === "cut") val = 2.0;
+    if(tipo === "bulk") val = 4.0;
+    if(tipo === "manut") val = 3.0;
+    if(tipo === "custom") return;
+    document.getElementById('carboKg').value = val;
+}
+
+// ================= CÁLCULO FINAL =================
+function calcular() {
+
+let peso = parseFloat(document.getElementById('peso').value) || 0;
+let proteinaKg = parseFloat(document.getElementById('proteinaKg').value) || 0;
+let lipidioKg = parseFloat(document.getElementById('lipidioKg').value) || 0;
+let carboKg = parseFloat(document.getElementById('carboKg').value) || 0;
+
+// MACROS
+let proteinaTotal = peso * proteinaKg;
+let lipidioTotal = peso * lipidioKg;
+let carboTotal = peso * carboKg;
+
+// CALORIAS
+let kcalTotal = (proteinaTotal * 4) + (lipidioTotal * 9) + (carboTotal * 4);
+
+// ÁGUA
+let aguaMl = peso * 50;
+let aguaL = aguaMl / 1000;
+
+document.getElementById('resultado').innerHTML += `
+<h3>Macros</h3>
+
+<p>🍗 Proteína: ${proteinaTotal.toFixed(1)} g</p>
+<p>🥑 Lipídio: ${lipidioTotal.toFixed(1)} g</p>
+<p>🍚 Carbo: ${carboTotal.toFixed(1)} g</p>
+
+<hr>
+
+<p>💧 Água: <strong>${aguaMl.toFixed(0)} ml</strong> (≈ ${aguaL.toFixed(2)} L)</p>
+
+<div class="total">
+🔥 ${kcalTotal.toFixed(0)} kcal totais
+</div>
+`;
+}
+
+</script>
+
+</body>
+</html>
